@@ -24,7 +24,7 @@ class CityGroups(models.Model):
 
 class BasicUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    city  = models.OneToOneField(City)
+    city  = models.OneToOneField(City, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=10)
     profile_img = models.ImageField(upload_to='profile_pictures/')
 
@@ -34,12 +34,12 @@ class Category(models.Model):
 
 class Post(models.Model):
     title = models.CharField(max_length=40)
-    post_type = models.OneToOneField(Category)
+    post_type = models.OneToOneField(Category,  on_delete=models.CASCADE)
     image = models.ImageField(upload_to='post_images/')
     phone_number =  models.CharField(max_length=30)
     more_info = models.TextField(blank=True, null=True)
     price = models.CharField(max_length=20)
-    user = models.OneToOneField(BasicUser)
-    city = models.OneToOneField(City)
+    user = models.OneToOneField(BasicUser,  on_delete=models.CASCADE)
+    city = models.OneToOneField(City,  on_delete=models.CASCADE)
     views = models.PositiveBigIntegerField(default=0)
     liked = models.PositiveBigIntegerField(default=0)
