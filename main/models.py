@@ -25,7 +25,7 @@ class CityGroups(models.Model):
 class BasicUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     city  = models.OneToOneField(City, on_delete=models.CASCADE)
-    phone_number = models.CharField(max_length=10)
+    phone_number = models.CharField(max_length=15)
     profile_img = models.ImageField(upload_to='profile_pictures/')
 
 
