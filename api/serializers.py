@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 
-from main.models import BasicUser, CityGroups, City
+from main.models import BasicUser, CityGroups, City, Category, Post
 
 
 class BasicUserSerializer(serializers.ModelSerializer):
@@ -53,3 +53,17 @@ class BasicUserSerializer(serializers.ModelSerializer):
         user = User.objects.create(**user_data)
         basic_user = BasicUser.objects.create(user=user, **validated_data)
         return basic_user
+    
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+
+class PostSerializer(serializers.ModelSerializer):
+    post_type = CategorySerializer(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Post
+        fields = '__all__'
