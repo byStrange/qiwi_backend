@@ -27,16 +27,14 @@ class RegionsSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'confirm_password')
-
+        fields = ('username', 'password')
+    
     def create(self, validated_data):
         user = User.objects.create(
             username=validated_data['username'],
-            email=validated_data['email']
         )
         user.set_password(validated_data['password'])
         user.save()
@@ -52,10 +50,6 @@ class BasicUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
-        password = user_data.pop('password')
-        confirm_password = user_data.pop('confirm_password')
-        if password != confirm_password:
-            raise serializers.ValidationError("Passwords do not match")
-        user = User.objects.create_user(password=password, **user_data)
+        user = User.objects.create(**user_data)
         basic_user = BasicUser.objects.create(user=user, **validated_data)
         return basic_user

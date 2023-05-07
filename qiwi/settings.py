@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     "main",
     "api",
     'rest_framework',
-    "corsheaders"
+    "corsheaders",
+    "knox"
 ]
 
 MIDDLEWARE = [
@@ -120,8 +121,6 @@ USE_TZ = True
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_NAME = 'sessionid'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
@@ -132,3 +131,12 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        'knox.auth.TokenAuthentication',
+    ]
+}

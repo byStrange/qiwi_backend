@@ -4,6 +4,7 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from knox.models import AuthToken
 from .serializers import BasicUserSerializer, RegionsSerializer, UserSerializer
 from main.models import BasicUser, CityGroups, City
 
@@ -46,15 +47,15 @@ class Region(generics.RetrieveUpdateDestroyAPIView):
 #             return Response({"success": True},  status=status.HTTP_201_CREATED)
 
 class RegisterView(APIView):
-    def post(self, request):
-        user_serializer = UserSerializer(data=request.data)
-        if user_serializer.is_valid():
-            user = user_serializer.save()
-            basic_user_serializer = BasicUserSerializer(data=request.data)
-            if basic_user_serializer.is_valid():
-                basic_user = basic_user_serializer.save(user=user)
-                return Response({
-                    'user': user_serializer.data,
-                    'basic_user': basic_user_serializer.data
-                }, status=status.HTTP_201_CREATED)
-        return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer_class = BasicUserSerializer
+
+    def post(self, request, format=None):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        basic_user = serializer.save()
+        user = basic_user.user
+        _, token = AuthToken.objects.create(user)
+        return Response({
+            "user":  UserSerializer(user).data,
+            "token": token
+        }, status=status.HTTP_201_CREATED)
