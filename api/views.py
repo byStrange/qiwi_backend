@@ -1,12 +1,16 @@
-from django.contrib.auth.models import User 
+from django.contrib.auth.models import User
 from django.contrib.sessions.backends.db import SessionStore
+
 from rest_framework import generics
 from rest_framework import status
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from knox.models import AuthToken
-from .serializers import BasicUserSerializer, RegionsSerializer, UserSerializer
-from main.models import BasicUser, CityGroups, City
+
+from main.models import BasicUser, CityGroups
+from .serializers import BasicUserSerializer, RegionsSerializer, UserSerializer, PostSerializer
 
 # Create your views here.
 
@@ -59,3 +63,14 @@ class RegisterView(APIView):
             "user":  UserSerializer(user).data,
             "token": token
         }, status=status.HTTP_201_CREATED)
+    
+
+class PostCreateView(generics.CreateAPIView):
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        post = serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

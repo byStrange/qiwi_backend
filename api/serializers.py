@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
-from rest_framework import serializers
 
+from rest_framework import serializers
 
 from main.models import BasicUser, CityGroups, City, Category, Post
 

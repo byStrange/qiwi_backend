@@ -1,6 +1,8 @@
 from django.urls import path, include
+
 from rest_framework import routers
 from knox import views as knox_views
+
 from .views import RegionsList, Region, RegisterView, UsersList
 
 app_name = "api"
