@@ -5,12 +5,6 @@ from rest_framework import serializers
 from main.models import BasicUser, CityGroups, City, Category, Post
 
 
-class BasicUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BasicUser
-        fields = '__all__'
-
-
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
@@ -53,7 +47,8 @@ class BasicUserSerializer(serializers.ModelSerializer):
         user = User.objects.create(**user_data)
         basic_user = BasicUser.objects.create(user=user, **validated_data)
         return basic_user
-    
+
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category

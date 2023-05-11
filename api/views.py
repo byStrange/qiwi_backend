@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.sessions.backends.db import SessionStore
+from django.shortcuts import get_object_or_404
 
 from rest_framework import generics
 from rest_framework import status
@@ -9,7 +10,7 @@ from rest_framework.views import APIView
 
 from knox.models import AuthToken
 
-from main.models import BasicUser, CityGroups
+from main.models import BasicUser, CityGroups, Post
 from .serializers import BasicUserSerializer, RegionsSerializer, UserSerializer, PostSerializer
 
 # Create your views here.
@@ -65,12 +66,45 @@ class RegisterView(APIView):
         }, status=status.HTTP_201_CREATED)
     
 
-class PostCreateView(generics.CreateAPIView):
-    serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
+class PostView(APIView):
+    permission_classes = (IsAuthenticated,)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        post = serializer.save(user=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def post(self, request):
+        serializer = PostSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request):
+        posts = Post.objects.all()
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+    
+
+class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = (IsAuthenticated,)
+
+
+class PostLikeView(APIView):
+    permission_classes = (IsAuthenticated,)
+    
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        post.liked += 1
+        post.save()
+        return Response(status=status.HTTP_200_OK)
+
+
+class PostViewView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request, pk):
+        post = get_object_or_404(Post, pk=pk)
+        post.views += 1
+        post.save()
+        return Response(status=status.HTTP_200_OK)
+    
