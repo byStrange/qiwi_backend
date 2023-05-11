@@ -94,17 +94,23 @@ class PostLikeView(APIView):
     
     def post(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
-        post.liked += 1
-        post.save()
-        return Response(status=status.HTTP_200_OK)
-
+        user = BasicUser(user=request.user)
+        if post.has_user_liked(user):
+            return Response({"message": "User has already liked this post"})
+        else:
+            post.increase_likes(user)
+            return Response(status=status.HTTP_200_OK)
+        
 
 class PostViewView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def post(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
-        post.views += 1
-        post.save()
-        return Response(status=status.HTTP_200_OK)
-    
+        user = BasicUser(user=request.user)
+        if post.has_user_viewed(user):
+            return Response({"message": "User has already viewed this post"})
+        else:
+            post.increase_views(user)
+            return Response(status=status.HTTP_200_OK)
+        
