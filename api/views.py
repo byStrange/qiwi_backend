@@ -79,7 +79,7 @@ class PostView(APIView):
     
     def get(self, request):
         posts = Post.objects.all()
-        city_id = self.request.query_params.get('city')
+        city_id = request.query_params.get('city')
         if city_id:
             posts = posts.filter(city__id=city_id)
         serializer = PostSerializer(posts, many=True)
