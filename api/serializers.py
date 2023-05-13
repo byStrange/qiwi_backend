@@ -72,6 +72,7 @@ class AuthSerializer(serializers.Serializer):
             print("password is incorrect")  
         return data
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
