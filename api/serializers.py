@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import  make_password
 
 from rest_framework import serializers
 
@@ -31,6 +31,9 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create(
             username=validated_data['username'],
         )
+        print("_________________________________________________________________________________---------------------------------------------------_______________________z")
+        print(user)
+        print(validated_data)
         user.set_password(validated_data['password'])
         user.save()
         return user
@@ -45,7 +48,11 @@ class BasicUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
-        user = User.objects.create(**user_data)
+        user = User.objects.create(username=user_data['username'])
+        password = make_password(user_data['password'])
+        user.set_password(password)
+        user.save()
+        print(user.password)
         basic_user = BasicUser.objects.create(user=user, **validated_data)
         return basic_user
 
@@ -55,11 +62,15 @@ class AuthSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
-        user = authenticate(username=data['username'], password=data['password'])
-        if not user:
-            raise serializers.ValidationError("Incorrect username or password")
-
-        return user
+        print(data)
+        user = User(username=data["username"])
+        print(user)
+        print(data['password'])
+        if user.check_password(data['password']):
+            data['user'] = user
+        else:
+            print("password is incorrect")  
+        return data
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

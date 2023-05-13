@@ -4,12 +4,14 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework import generics
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+
 
 from knox.models import AuthToken
+from knox.views import LoginView as KnoxLoginView
 
 
 from main.models import BasicUser, CityGroups, Post
@@ -31,17 +33,15 @@ class Region(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RegionsSerializer
 
 
-from knox.views import LoginView as KnoxLoginView
-from rest_framework import permissions
-
 class LoginView(KnoxLoginView):
-    permission_classes = [permissions.AllowAny]
+    # login view extending KnoxLoginView
+    serializer_class = AuthSerializer
+    permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
-        serializer = AuthSerializer(data=request.data)
+        serializer = AuthSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        return super().post(request, format=None)
+        return super(LoginView, self).post(request, format=None) 
 
 
 
