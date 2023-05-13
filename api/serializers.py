@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 
 from rest_framework import serializers
 
@@ -48,6 +49,17 @@ class BasicUserSerializer(serializers.ModelSerializer):
         basic_user = BasicUser.objects.create(user=user, **validated_data)
         return basic_user
 
+
+class AuthSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        user = authenticate(username=data['username'], password=data['password'])
+        if not user:
+            raise serializers.ValidationError("Incorrect username or password")
+
+        return user
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
