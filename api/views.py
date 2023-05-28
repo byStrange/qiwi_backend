@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.sessions.backends.db import SessionStore
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import login
 
 from rest_framework import generics
 from rest_framework import status
@@ -14,8 +15,8 @@ from knox.models import AuthToken
 from knox.views import LoginView as KnoxLoginView
 
 
-from main.models import BasicUser, CityGroups, Post
-from .serializers import BasicUserSerializer, RegionsSerializer, UserSerializer, PostSerializer, AuthSerializer
+from main.models import BasicUser, CityGroups, Post, Category
+from .serializers import BasicUserSerializer, RegionsSerializer, UserSerializer, PostSerializer, AuthSerializer, CategorySerializer
 
 
 class UsersList(generics.ListCreateAPIView):
@@ -39,10 +40,14 @@ class LoginView(KnoxLoginView):
     permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
-        serializer = AuthSerializer(data=request.data, context={'request': request})
+        print(request.data)
+        serializer = AuthTokenSerializer(
+            data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        return super(LoginView, self).post(request, format=None) 
-
+        user = serializer.validated_data['user']
+        print(user)
+        login(request, user)
+        return super(LoginView, self).post(request, format=None)
 
 
 class RegisterView(APIView):
@@ -59,7 +64,7 @@ class RegisterView(APIView):
             "user":  UserSerializer(user).data,
             "token": token
         }, status=status.HTTP_201_CREATED)
-    
+
 
 class PostView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -71,7 +76,7 @@ class PostView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def get(self, request):
         posts = Post.objects.all()
         city_id = request.query_params.get('city')
@@ -79,7 +84,7 @@ class PostView(APIView):
             posts = posts.filter(city__id=city_id)
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
-    
+
 
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
@@ -89,7 +94,7 @@ class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class PostLikeView(APIView):
     permission_classes = (IsAuthenticated,)
-    
+
     def post(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
         user = BasicUser(user=request.user)
@@ -98,7 +103,7 @@ class PostLikeView(APIView):
         else:
             post.increase_likes(user)
             return Response(status=status.HTTP_200_OK)
-        
+
 
 class PostViewView(APIView):
     permission_classes = (IsAuthenticated, )
@@ -111,4 +116,8 @@ class PostViewView(APIView):
         else:
             post.increase_views(user)
             return Response(status=status.HTTP_200_OK)
-        
+
+
+class TestView(generics.ListCreateAPIView):
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()

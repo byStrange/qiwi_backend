@@ -31,7 +31,6 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create(
             username=validated_data['username'],
         )
-        print("_________________________________________________________________________________---------------------------------------------------_______________________z")
         print(user)
         print(validated_data)
         user.set_password(validated_data['password'])
@@ -49,8 +48,7 @@ class BasicUserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         user = User.objects.create(username=user_data['username'])
-        password = make_password(user_data['password'])
-        user.set_password(password)
+        user.set_password(user_data['password'])
         user.save()
         print(user.password)
         basic_user = BasicUser.objects.create(user=user, **validated_data)
@@ -62,11 +60,9 @@ class AuthSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
-        print(data)
-        user = User(username=data["username"])
-        print(user)
-        print(data['password'])
+        user = User.objects.get(username=data['username'])
         if user.check_password(data['password']):
+            print('password is correct')
             data['user'] = user
         else:
             print("password is incorrect")  
