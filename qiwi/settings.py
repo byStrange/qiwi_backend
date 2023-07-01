@@ -4,7 +4,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -31,6 +30,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "knox",
+    "channels",
+    "chat",
 ]
 
 MIDDLEWARE = [
@@ -63,6 +64,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "qiwi.wsgi.application"
+ASGI_APPLICATION = "qiwi.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 
 
 # Database
@@ -100,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Tashkent"
 
 USE_I18N = True
 
@@ -114,9 +122,12 @@ CORS_ORIGIN_ALLOW_ALL = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_URL = "/static/"
+STATIC_URL = "static/"
+
 MEDIA_URL = "media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = str(BASE_DIR) + "/media"
+MEDIAFILES_DIRS = [BASE_DIR / "media"]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
@@ -131,4 +142,12 @@ REST_FRAMEWORK = {
     ]
 }
 
-CORS_ALLOW_HEADERS = ["content-type", "authentication"]
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8080",
+    "https://kiwifr.pythonanywhere.com",
+    "http://localhost:8080",
+]
+
+CORS_ALLOW_HEADERS = ["content-type", "authentication", "Authorization"]
+
+REST_KNOX = {"TOKEN_TTL": None}

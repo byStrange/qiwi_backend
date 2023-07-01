@@ -7,5 +7,7 @@ admin.site.register(City)
 admin.site.register(CityGroups)
 admin.site.register(Category)
 admin.site.register(Post)
-# Register your models here.
-
+admin.site.register(Image)
+admin.site.register(Location)
+admin.site.register(AD)
+admin.site.register(Comment)
