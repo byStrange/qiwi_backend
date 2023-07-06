@@ -11,12 +11,18 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.exceptions import ValidationError
 
 
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 from knox.models import AuthToken
 from knox.views import LoginView as KnoxLoginView
 
 import json
 
 from main.models import BasicUser, CityGroups, Post, Category, AD, City, Location, Image
+from chat.models import ChatMessage, Thread
+from chat.models import Thread, ChatMessage
+
 from .serializers import (
     BasicUserSerializer,
     RegionsSerializer,
@@ -30,8 +36,6 @@ from .serializers import (
     ThreadSerializer,
     LocationSerializer,
 )
-
-from chat.models import ChatMessage, Thread
 
 
 class ProfileView(APIView):
@@ -101,7 +105,6 @@ class LoginView(KnoxLoginView):
     permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
-        print(request.data)
         serializer = AuthTokenSerializer(
             data=request.data, context={"request": request}
         )
@@ -116,7 +119,6 @@ class CheckAuthView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        print(request.user)
         return Response({"isAuthenticated": True, "username": request.user.username})
 
 
@@ -124,13 +126,10 @@ class RegisterView(APIView):
     serializer_class = BasicUserSerializer
 
     def post(self, request, format=None):
-        print(request.data)
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            basic_user = serializer.save()
-        except:
-            raise ValidationError("409: USERNAME ALREADY EXISTS")
+        basic_user = serializer.save()
+        # raise ValidationError("409: USERNAME ALREADY EXISTS")
         user = basic_user.user
 
         _, token = AuthToken.objects.create(user)
@@ -144,18 +143,14 @@ class PostView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        print(request.data)
         basic_user = BasicUser.objects.get(user=request.user)
         images_data = request.data.pop("images", [])
 
-        print("FILES", request.FILES)
         images = []
 
         for image_data in images_data:
-            print(image_data)
             image = Image.objects.create(image=image_data)
             images.append(image)
-        print(images)
 
         # get ids
         city_id = request.data.get("city")
@@ -172,7 +167,7 @@ class PostView(APIView):
         # location = Location.objects.get(id=location_id)
         if is_top:
             basic_user.top_attempts -= 1
-            basic_user.save()   
+            basic_user.save()
         serializer = PostSerializer(data=request.data, context={"request": request})
 
         if serializer.is_valid():
@@ -252,7 +247,6 @@ class PostViewView(APIView):
     def post(self, request, pk):
         post = get_object_or_404(Post, pk=pk)
         user = BasicUser.objects.get(user=request.user)
-        print(user)
         if post.has_user_viewed(user):
             return Response(
                 {"message": "User has already viewed this post"},
@@ -273,6 +267,8 @@ class ThreadView(generics.ListCreateAPIView):
 
 
 class ThreadChatMessagesAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request, uuid):
         try:
             thread = Thread.objects.get(id=uuid)
@@ -280,7 +276,141 @@ class ThreadChatMessagesAPIView(APIView):
             return Response(
                 {"error": "Thread not found"}, status=status.HTTP_404_NOT_FOUND
             )
-
+        user = BasicUser.objects.get(user=request.user)
+        if not thread.members.filter(id=user.id).exists():
+            return Response(
+                {
+                    "error": "User is not a member of the thread",
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
         chat_messages = ChatMessage.objects.filter(thread=thread)
         serializer = ChatMessageSerializer(chat_messages, many=True)
         return Response(serializer.data)
+
+
+class DeleteMessagesView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        # Get the necessary data from the request
+        thread_id = request.data.get("thread_id")
+        message_ids = request.data.get("message_ids")
+        user = BasicUser.objects.get(user=request.user)
+        user_id = user.id
+
+        # Validate the data
+        if not thread_id or not message_ids:
+            return Response(
+                {"error": "Missing required data"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Ensure the thread exists
+            thread = Thread.objects.get(id=thread_id)
+
+            # Check if the user is a member of the thread
+            if not thread.members.filter(id=user_id).exists():
+                return Response(
+                    {"error": "User is not a member of the thread"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Delete the messages associated with the thread and message IDs
+            ChatMessage.objects.filter(thread=thread, id__in=message_ids).delete()
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"chat_{thread_id}",
+                {
+                    "type": "chat_message",
+                    "message": json.dumps(
+                        {
+                            "action": "deleteMessages",
+                            "thread_id": thread_id,
+                            "message_ids": message_ids,
+                        }
+                    ),
+                },
+            )
+            return Response(
+                {"success": "Messages deleted successfully"}, status=status.HTTP_200_OK
+            )
+
+        # There is no thread with this id
+        except Thread.DoesNotExist:
+            return Response(
+                {"error": "Thread not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # There was a problem deleting a message
+        except Exception as e:
+            return Response(
+                {"error": "Failed to delete messages"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class ReadMessagesView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        # Get the necessary data from the request
+        thread_id = request.data.get("thread_id")
+        message_ids = request.data.get("message_ids")
+        user = BasicUser.objects.get(user=request.user)
+        user_id = user.id
+
+        # Validate the data
+        if not thread_id or not message_ids:
+            return Response(
+                {"error": "Missing required data"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Ensure the thread exists
+            thread = Thread.objects.get(id=thread_id)
+
+            # Check if the user is a member of the thread
+            if not thread.members.filter(id=user_id).exists():
+                return Response(
+                    {"error": "User is not a member of the thread"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Delete the messages associated with the thread and message IDs
+            messages = ChatMessage.objects.filter(thread=thread, id__in=message_ids)
+            for message in messages:
+                if message.user.id != user_id:
+                    message.read = True
+                    message.save()
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"chat_{thread_id}",
+                {
+                    "type": "chat_message",
+                    "message": json.dumps(
+                        {
+                            "action": "readMessages",
+                            "thread_id": thread_id,
+                            "message_ids": message_ids,
+                        }
+                    ),
+                },
+            )
+            return Response(
+                {"success": "Messages read successfully"}, status=status.HTTP_200_OK
+            )
+
+        # There is no thread with this id
+        except Thread.DoesNotExist:
+            return Response(
+                {"error": "Thread not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # There was a problem deleting a message
+        except Exception as e:
+            return Response(
+                {"error": "Failed to delete messages"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

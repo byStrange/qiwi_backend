@@ -20,6 +20,8 @@ from .views import (
     ThreadView,
     ThreadChatMessagesAPIView,
     GenerateLocation,
+    DeleteMessagesView,
+    ReadMessagesView,
 )
 
 app_name = "api"
@@ -40,6 +42,8 @@ urlpatterns = [
         ThreadChatMessagesAPIView.as_view(),
         name="chat_messages",
     ),
+    path("delete-messages/", DeleteMessagesView.as_view(), name="delete_messages"),
+    path("read-messages/", ReadMessagesView.as_view(), name="read_messages"),
     #  registration
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),

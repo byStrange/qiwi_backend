@@ -23,11 +23,6 @@ class ChatConsumer(AsyncConsumer):
         thread_id = received_data.get("thread_id")
         images = received_data.get("images", [])
         location = received_data.get("coords")
-        print("IMAGES: ", images)
-        print(
-            "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------RECEIVED DATA------------------------------------------------------------------------------------------------------------------------------------------------",
-            received_data,
-        )
 
         sent_by_user = await self.get_user_object(sent_by_id)
         if not sent_by_user:
@@ -121,6 +116,8 @@ class ChatConsumer(AsyncConsumer):
                         if message.location
                         else None,
                         "timestamp": str(message.timestamp),
+                        "read": message.read,
+                        "action": "sendMessage",
                     }
                 ),
             },
@@ -181,25 +178,14 @@ class ChatConsumer(AsyncConsumer):
             chat_message.attached_images.add(image_obj)
             attached_images.append({"id": image_obj.id, "image": image_obj.image.url})
         chat_message.save()
-        print(
-            "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------SAVING CHATMESSAGE AFTER FOR---------------------------------------------------------------------------------------",
-            chat_message,
-        )
         if location:
-            print(
-                "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------IT HAS A LOCATION------------------------------------------------------------------------------------------------",
-                location,
-            )
             location = Location.objects.create(
                 latitude=location["latitude"], longitude=location["longitude"]
             )
             chat_message.location = location
             chat_message.save()
         else:
-            print(
-                "------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------LOCATION NOT FOUND------------------------------------------------------------------------------------------------------------------------------------------------",
-                location,
-            )
+            pass
         return {"chat_message": chat_message, "images": attached_images}
 
 
@@ -210,7 +196,7 @@ class PostConsumer(AsyncConsumer):
         await self.send({"type": "websocket.accept"})
 
     async def websocket_receive(self, event):
-        print("hi")
+        print("HELLO GUYS")
         print(event)
         # Handle incoming messages of type websocket.receive
         # You can process the received message here if needed

@@ -56,8 +56,6 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create(
             username=validated_data["username"], first_name=validated_data["first_name"]
         )
-        print(user)
-        print(validated_data)
         user.set_password(validated_data["password"])
         user.save()
         return user
@@ -93,8 +91,9 @@ class BasicUserSerializer(serializers.ModelSerializer):
             "top_attempts",
         )
 
-    def create(self, validated_data):
+    def create(self, validated_data):   
         user_data = self.initial_data
+        print("USER DATA", user_data)
         try:
             user = User.objects.create(
                 username=user_data["user.username"],
