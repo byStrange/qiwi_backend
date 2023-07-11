@@ -1,6 +1,8 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import login
 from django.views.decorators.csrf import csrf_exempt
+from django.http import Http404
+from django.db.models import Max, OuterRef, Subquery
 
 from rest_framework import generics
 from rest_framework import status
@@ -263,8 +265,21 @@ class CategoriesView(generics.ListCreateAPIView):
 
 class ThreadView(generics.ListCreateAPIView):
     serializer_class = ThreadSerializer
-    queryset = Thread.objects.all()
+    permission_classes = (IsAuthenticated,)
 
+    def get_queryset(self):
+        user = BasicUser.objects.get(user=self.request.user)
+    
+        # Get the maximum timestamp for each thread
+        subquery = ChatMessage.objects.filter(thread=OuterRef("id")).values("thread").annotate(
+                max_timestamp=Max("timestamp")
+        ).values("max_timestamp")
+
+        # Order the threads based on the maximum timestamp
+        queryset = Thread.objects.annotate(
+            last_message_timestamp=Subquery(subquery)
+        ).filter(members=user).order_by("-last_message_timestamp")
+        return queryset
 
 class ThreadChatMessagesAPIView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -414,3 +429,14 @@ class ReadMessagesView(APIView):
                 {"error": "Failed to delete messages"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+class DeleteThreadView(APIView):
+    def post(self, request, uuid):
+        try:
+            thread = get_object_or_404(Thread, id=uuid)
+            # Perform the deletion logic here...
+            thread.delete()
+            return Response({'success': True})
+        except Http404:
+            return Response({'success': False}, status=404)
+        

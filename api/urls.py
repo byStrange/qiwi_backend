@@ -22,6 +22,7 @@ from .views import (
     GenerateLocation,
     DeleteMessagesView,
     ReadMessagesView,
+    DeleteThreadView
 )
 
 app_name = "api"
@@ -42,6 +43,7 @@ urlpatterns = [
         ThreadChatMessagesAPIView.as_view(),
         name="chat_messages",
     ),
+    path("threads/<uuid:uuid>/delete/", DeleteThreadView.as_view(), name="delete_thread"),
     path("delete-messages/", DeleteMessagesView.as_view(), name="delete_messages"),
     path("read-messages/", ReadMessagesView.as_view(), name="read_messages"),
     #  registration
@@ -56,4 +58,5 @@ urlpatterns = [
     path("categories/", CategoriesView.as_view(), name="categories_view"),
     # knox urls
     path("auth/", include("knox.urls")),
+    path("sms/", include("sms.urls"))
 ]

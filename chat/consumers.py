@@ -10,6 +10,7 @@ from chat.models import Thread, ChatMessage
 class ChatConsumer(AsyncConsumer):
     async def websocket_connect(self, event):
         self.thread_id = self.scope["url_route"]["kwargs"]["thread_id"]
+        self.exception_thread_id = "12f2ccc9-fa41-4e15-bde0-a8e560391ea4"
         self.room_group_name = "chat_%s" % self.thread_id
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
@@ -38,9 +39,6 @@ class ChatConsumer(AsyncConsumer):
             )
             attached_images = message_obj["images"]
             message = message_obj["chat_message"]
-            print(thread_obj)
-            print(message_obj)
-            print(self.room_group_name)
             return await self.channel_layer.group_send(
                 self.room_group_name,
                 {
@@ -154,7 +152,7 @@ class ChatConsumer(AsyncConsumer):
                 return thread
             except:
                 return None
-        thread = Thread.objects.filter(members=user1).filter(members=user2).first()
+        thread = Thread.objects.exclude(id=self.exception_thread_id).filter(members=user1).filter(members=user2).first()
         print(user1, user2)
         if thread is None:
             thread = Thread.objects.create()
@@ -210,7 +208,6 @@ class PostConsumer(AsyncConsumer):
 
     async def send_signal(self, event):
         # Receive a post update event and send it to the client
-        print("SEND SIGNAL WORKING ")
         await self.send({"type": "websocket.send", "text": event["message"]})
 
 

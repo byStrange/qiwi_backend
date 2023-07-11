@@ -18,5 +18,9 @@ def testCheck(request):
 urlpatterns = [
     path("api/", include("api.urls")),
     path("admin/", admin.site.urls),
-    path("testCheck/", testCheck),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+path("testCheck/", testCheck),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

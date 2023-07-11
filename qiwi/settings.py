@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "knox",
     "channels",
     "chat",
+    "sms"
 ]
 
 MIDDLEWARE = [
@@ -123,10 +124,10 @@ CORS_ORIGIN_ALLOW_ALL = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = str(BASE_DIR) + "/static"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = str(BASE_DIR) + "/media"
-MEDIAFILES_DIRS = [BASE_DIR / "media"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
