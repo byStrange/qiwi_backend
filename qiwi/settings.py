@@ -65,14 +65,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "qiwi.wsgi.application"
-ASGI_APPLICATION = "qiwi.asgi.application"
-
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    },
-}
-
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -152,3 +144,15 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_HEADERS = ["content-type", "authentication", "Authorization"]
 
 REST_KNOX = {"TOKEN_TTL": None}
+
+ASGI_APPLICATION = "qiwi.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "config": {
+            "hosts":  [os.onviron.get("REDIS_URL", "redis://localhost:6379")]
+}
+    },
+}
+

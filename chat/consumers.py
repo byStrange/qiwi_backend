@@ -65,10 +65,11 @@ class ChatConsumer(AsyncConsumer):
                 sent_by_user, send_to_user, True
             )
             thread = thread_obj["thread"]
-            return await self.send(
+            return await self.channel_layer.group_send(
+                self.room_group_name, 
                 {
-                    "type": "websocket.send",
-                    "text": json.dumps(
+                    "type": "chat_message",
+                    "message": json.dumps(
                         {
                             "action": "redirect_user_thread",
                             "id": str(thread.id),
@@ -101,7 +102,7 @@ class ChatConsumer(AsyncConsumer):
                 "type": "chat_message",
                 "message": json.dumps(
                     {
-                        "id": str(message.id),
+                        "id": message.id,
                         "thread": str(message.thread.id),
                         "message": message.message,
                         "user": message.user.id,
@@ -131,7 +132,6 @@ class ChatConsumer(AsyncConsumer):
     @database_sync_to_async
     def get_user_object(self, user_id):
         print("USERID: ", user_id)
-        print(BasicUser.objects.get(id=user_id))
         qs = BasicUser.objects.filter(id=user_id)
         print(qs)
         if qs.exists():
