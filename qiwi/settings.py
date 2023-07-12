@@ -139,9 +139,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8080",
     "https://kiwifr.pythonanywhere.com",
     "http://localhost:8080",
+    "https://kiwiv1-464f14baec3d.herokuapp.com"
 ]
 
-CORS_ALLOW_HEADERS = ["content-type", "authentication", "Authorization"]
+CORS_ALLOW_HEADERS = ["content-type", "authentication", "Authorization", "Access-Control-Allow-Origin"]
 
 REST_KNOX = {"TOKEN_TTL": None}
 
