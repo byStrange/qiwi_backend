@@ -5,7 +5,6 @@
 venv/
 
 # Ignore Django's migrations
-**/migrations/
 
 # Ignore local settings file
 local_settings.py
@@ -16,11 +15,8 @@ local_settings.py
 # Ignore log fil    es
 logs/
 
-# Ignore media files
-media/
 
 # Ignore database files
-*.sqlite3
 
 # Ignore IDE files
 .idea/
