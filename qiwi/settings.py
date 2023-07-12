@@ -157,3 +157,8 @@ CHANNEL_LAYERS = {
     },
 }
 
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://kiwiv1-464f14baec3d.herokuapp.com",
+    "https://kiwi-fr.vercel.app"
+]
