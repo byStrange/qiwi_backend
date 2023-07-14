@@ -150,9 +150,10 @@ REST_KNOX = {"TOKEN_TTL": None}
 
 ASGI_APPLICATION = "qiwi.asgi.application"
 
-redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379")
+redis_url = os.environ.get("REDIS_TLS_URL", "redis://localhost:6379")
 url_parts = urlparse(redis_url)
 redis_server = (url_parts.hostname, url_parts.port)
+print(redis_server)
 
 CHANNEL_LAYERS = {
     "default": {
