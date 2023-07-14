@@ -147,7 +147,7 @@ CORS_ALLOW_HEADERS = ["content-type", "authentication", "Authorization", "Access
 
 REST_KNOX = {"TOKEN_TTL": None}
 
-ASGI_APPLICATION = "qiwi.asgi.application"
+ASGI_APPLICATION = "qiwi.routing.application"
 
 CHANNEL_LAYERS = {
     "default": {
