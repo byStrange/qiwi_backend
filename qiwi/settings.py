@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from urllib.parse import urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -149,11 +150,15 @@ REST_KNOX = {"TOKEN_TTL": None}
 
 ASGI_APPLICATION = "qiwi.asgi.application"
 
+redis_url = os.environ.get("REDIS_URL", "redis://localhost:6379")
+url_parts = urlparse(redis_url)
+redis_server = (url_parts.hostname, url_parts.port)
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "config": {
-            "hosts":  [(os.environ.get("REDIS_URL", "redis://localhost:6379"), 6379)]
+            "hosts":  [redis_server]
 	    }
     },
 }
