@@ -149,6 +149,9 @@ REST_KNOX = {"TOKEN_TTL": None}
 
 ASGI_APPLICATION = "qiwi.asgi.application"
 
+print(os.environ)
+print(os.environ.get("REDIS_URL"))
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
