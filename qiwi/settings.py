@@ -157,10 +157,7 @@ print(redis_server)
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "config": {
-            "hosts":  [redis_server]
-	    }
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
 

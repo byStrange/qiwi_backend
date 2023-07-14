@@ -13,7 +13,6 @@ class ChatConsumer(AsyncConsumer):
         self.exception_thread_id = "12f2ccc9-fa41-4e15-bde0-a8e560391ea4"
         self.room_group_name = "chat_%s" % self.thread_id
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-
         await self.send({"type": "websocket.accept"})
 
     async def websocket_receive(self, event):
