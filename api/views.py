@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import login
 from django.views.decorators.csrf import csrf_exempt
@@ -133,7 +134,13 @@ class RegisterView(APIView):
         basic_user = serializer.save()
         # raise ValidationError("409: USERNAME ALREADY EXISTS")
         user = basic_user.user
-
+        
+        try:
+            thread = Thread.objects.get(id=settings.GLOBAL_CHAT_ID)
+            thread.members.add(basic_user)
+        except:
+            pass
+        
         _, token = AuthToken.objects.create(user)
         return Response(
             {"user": UserSerializer(user).data, "token": token},

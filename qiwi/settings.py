@@ -156,8 +156,11 @@ redis_server = (url_parts.hostname, url_parts.port)
 print(redis_server)
 
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('localhost', 4444)],
+        },
     },
 }
 
@@ -166,3 +169,5 @@ CSRF_TRUSTED_ORIGINS = [
     "https://kiwiv1-464f14baec3d.herokuapp.com",
     "https://kiwi-fr.vercel.app"
 ]
+
+GLOBAL_CHAT_ID = "12f2ccc9-fa41-4e15-bde0-a8e560391ea4"
